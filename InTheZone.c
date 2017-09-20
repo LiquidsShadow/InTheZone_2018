@@ -23,13 +23,13 @@
 
 void setLeftDrivePower(int power)
 {
-    motor[driveLeftFront] = sign;
-    motor[driveLeftBack] = sign;
+    motor[driveLeftFront] = power;
+    motor[driveLeftBack] = power;
 }
-void setRightDrivePower(int powe)
+void setRightDrivePower(int power)
 {
-    motor[driveRightFront] = sign;
-    motor[driveRightBack] = sign;
+    motor[driveRightFront] = power;
+    motor[driveRightBack] = power;
 }
 
 void setLiftPower(int power)
@@ -80,27 +80,27 @@ task usercontrol()
         word btnSevenUp = vexRT[Btn7U]; //for folding claws
         word btnSevenD = vexRT[Btn7D]; //180 degrees
         
-        word btnSixU = vexRTBtn6U]; //for toggling reverse direction
+        word btnEightRight = vexRT[Btn8R]; //for toggling reverse direction
         int sign = 1; //controls direction
-        bool btnSixUPressed = false; //tracks if button was pressed
+        bool btnEightRightPressed = false; //tracks if button was pressed
         
         
-        if(btnSixD == 1 && !btnSixUPressed){ //if button was pressed and was not already being pressed, change sign
+        if(btnEightRight == 1 && !btnEightRightPressed){ //if button was pressed and was not already being pressed, change sign
             sign = -sign;
-            btnSixUPressed = true;
+            btnEightRightPressed = true;
         }
-        else if(btnSixU == 0 && btnSixUPressed) //if button is no longer being pressed, update bool
-            btnSixUPressed = false;
+        else if(btnEightRight == 0 && btnEightRightPressed) //if button is no longer being pressed, update bool
+            btnEightRightPressed = false;
         
         if(fabs(rightJoy) >= 15)
             setRightDrivePower(sign*rightJoy);
         else
-            setRightDrivePower(0, sign);
+            setRightDrivePower(0);
         
         if(fabs(leftJoy) >= 15)
             setLeftDrivePower(sign*leftJoy);
         else
-            setLeftDrivePower(0, sign);
+            setLeftDrivePower(0);
         
         
         //Lift Motors
