@@ -64,6 +64,9 @@ task autonomous()
 task usercontrol()
 {
     bool pinpointDrive = false;
+    int sign = 1; //controls direction
+    bool btnEightRightPressed = false; //tracks if button was pressed
+
     while(true)
     {
         int setPoint = 3000;
@@ -79,10 +82,7 @@ task usercontrol()
         word btnEightDown = vexRT[Btn8D]; //for lift to set point
         word btnSevenUp = vexRT[Btn7U]; //for folding claws
         word btnSevenD = vexRT[Btn7D]; //180 degrees
-        
         word btnEightRight = vexRT[Btn8R]; //for toggling reverse direction
-        int sign = 1; //controls direction
-        bool btnEightRightPressed = false; //tracks if button was pressed
         
         
         if(btnEightRight == 1 && !btnEightRightPressed){ //if button was pressed and was not already being pressed, change sign
