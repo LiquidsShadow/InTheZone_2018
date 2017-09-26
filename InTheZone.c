@@ -21,15 +21,19 @@
 
 #include "Vex_Competition_Includes.c"
 
-void setLeftDrivePower(int power)
+void setDrivePower(int power, char side)
 {
-    motor[driveLeftFront] = power;
-    motor[driveLeftBack] = power;
-}
-void setRightDrivePower(int power)
-{
-    motor[driveRightFront] = power;
-    motor[driveRightBack] = power;
+    if(char == -1)
+    {
+        motor[driveLeftFront] = power;
+        motor[driveLeftBack] = power;
+
+    }
+    else if(char == 1)
+    {
+        motor[driveRightFront] = power;
+        motor[driveRightBack] = power;
+    }
 }
 
 void setLiftPower(int power)
@@ -64,7 +68,8 @@ task autonomous()
 task usercontrol()
 {
     bool pinpointDrive = false;
-    int sign = 1; //controls direction
+    char sign = 1; //controls direction
+    char side = 1;
     bool btnEightRightPressed = false; //tracks if button was pressed
 
     while(true)
@@ -87,20 +92,21 @@ task usercontrol()
 
         if(btnEightRight == 1 && !btnEightRightPressed){ //if button was pressed and was not already being pressed, change sign
             sign = -sign;
+            side = -side;
             btnEightRightPressed = true;
         }
         else if(btnEightRight == 0 && btnEightRightPressed) //if button is no longer being pressed, update bool
             btnEightRightPressed = false;
 
         if(fabs(rightJoy) >= 15)
-            setRightDrivePower(sign*rightJoy);
+            setDrivePower(sign*rightJoy, side);
         else
-            setRightDrivePower(0);
+            setDrivePower(0, side);
 
         if(fabs(leftJoy) >= 15)
-            setLeftDrivePower(sign*leftJoy);
+            setDrivePower(sign*leftJoy, -1 * side);
         else
-            setLeftDrivePower(0);
+            setDrivePower(0, -1 * side);
 
 
         //Lift Motors
