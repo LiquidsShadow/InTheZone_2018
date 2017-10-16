@@ -21,6 +21,7 @@
 
 #pragma competitionControl(Competition)
 
+
 #define BCI_USE_TIMER
 #define BCI_USE_POS_PID
 
@@ -29,6 +30,7 @@
 #include "..\BCI-master\BCI.h"
 #include "..\BCI-master\drivingFunctions.c"
 #include "..\BCI-master\turningFunctions.c"
+
 
 void pre_auton()
 {
@@ -46,7 +48,8 @@ task autonomous()
 task usercontrol()
 {
     bool pinpointDrive = false;
-    int signVal = 1; //controls direction
+    char signVal = 1; //controls direction
+    char side = 1;
     bool btnEightRightPressed = false; //tracks if button was pressed
 
     while(true)
@@ -68,7 +71,9 @@ task usercontrol()
         word btnEightRight = vexRT[Btn8R]; //for toggling reverse direction
 
         if(btnEightRight == 1 && !btnEightRightPressed){ //if button was pressed and was not already being pressed, change sign
+
             signVal = -signVal;
+            side = -side;
             btnEightRightPressed = true;
         }
         else if(btnEightRight == 0 && btnEightRightPressed) //if button is no longer being pressed, update bool
