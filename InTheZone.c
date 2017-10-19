@@ -3,7 +3,7 @@
 #pragma config(Sensor, in3,    rightClawPoten, sensorPotentiometer)
 #pragma config(Sensor, dgtl1,  leftQuad,       sensorQuadEncoder)
 #pragma config(Sensor, dgtl3,  rightQuad,      sensorQuadEncoder)
-#pragma config(Sensor, dgtl10, leftPiston,     sensorDigitalOut)
+#pragma config(Sensor, dgtl11, leftPiston,     sensorDigitalOut)
 #pragma config(Sensor, dgtl12, rightPiston,    sensorDigitalOut)
 #pragma config(Motor,  port1,           claw2,         tmotorVex393_HBridge, openLoop, reversed)
 #pragma config(Motor,  port2,           test,          tmotorVex393_MC29, openLoop)
