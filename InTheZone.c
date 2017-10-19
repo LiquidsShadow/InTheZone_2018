@@ -47,14 +47,11 @@ task autonomous()
 
 task usercontrol()
 {
-    bool pinpointDrive = false;
-    char signVal = 1; //controls direction
-    char side = 1;
+    char direction = 1; //controls direction
     bool btnEightRightPressed = false; //tracks if button was pressed
 
     while(true)
     {
-        int setPoint = 3000;
 
         //Buttons and Joysticks
         int  rightJoy = vexRT[Ch2];
@@ -72,22 +69,33 @@ task usercontrol()
 
         if(btnEightRight == 1 && !btnEightRightPressed){ //if button was pressed and was not already being pressed, change sign
 
-            signVal = -signVal;
-            side = -side;
+            direction = -direction;
             btnEightRightPressed = true;
         }
         else if(btnEightRight == 0 && btnEightRightPressed) //if button is no longer being pressed, update bool
             btnEightRightPressed = false;
 
         if(fabs(rightJoy) >= 15)
-            setRightMotors(signVal*rightJoy);
+            if(direction==1)
+                setRightMotors(rightJoy);
+            else
+                setLeftMotors(rightJoy);
         else
-            setRightMotors(0);
+            if(direction==1)
+                setRightMotors(0);
+            else
+                setLeftMotors(0);
 
         if(fabs(leftJoy) >= 15)
-            setLeftMotors(signVal*leftJoy);
+            if(direction==1)
+                setLeftMotors(leftJoy);
+            else
+                setRightMotors(leftJoy);
         else
-            setLeftMotors(0);
+            if(direction==1)
+                setLeftMotors(0);
+            else
+                setRightMotors(0);
 
 
         //Lift Motors
