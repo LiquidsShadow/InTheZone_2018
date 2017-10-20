@@ -67,18 +67,18 @@ void setMobileBaseLiftToPos(int liftPos)
 
 	// MBL - Mobile Base Lift
 	int curr = SensorValue[mobileBaseLiftPot];
-  int diff = curr - liftPos;
-  int pwr = (int) (0.15 * diff);
+	int diff = curr - liftPos;
+	int pwr = (int) (0.15 * diff);
 
-  while (abs(pwr) >= 5)
-  {
-  	setMobileBaseLiftPower(pwr);
+	while (abs(pwr) >= 5)
+	{
+		setMobileBaseLiftPower(pwr);
 
-  	// update variables
-  	curr = SensorValue[mobileBaseLiftPot];
-  	diff = curr - liftPos;
-  	pwr = (int) (0.15 * diff);
-  }
+		// update variables
+		curr = SensorValue[mobileBaseLiftPot];
+		diff = curr - liftPos;
+		pwr = (int) (0.15 * diff);
+	}
 }
 /*
 Sets main lift to a position while proportionally decreasing motor power as lift reaches desired position
@@ -150,27 +150,29 @@ Runs user control
 */
 void runUserControl()
 {
+	// Joysticks
+	int  rightJoy = vexRT[Ch2]; // right joystick
+	int  leftJoy = vexRT[Ch3]; // left joystick
+	// Buttons
+	word btn8UP = vexRT[Btn8U]; // button raise mobile base lift
+	word btn8DOWN = vexRT[Btn8D]; // button to lower mobile base lift
+	// Triggers
+	word rightTriggerUP = vexRT[Btn6U]; // trigger to raise main lift
+	word rightTriggerDOWN = vexRT[Btn6D]; // trigger to lower main lift
+	word leftTriggerUP = vexRT[Btn5U]; // trigger to open pincers
+	word leftTriggerDOWN = vexRT[Btn5D]; // trigger to close pincers
+
+	// positions for lift/pincer control
+	int posMLU = 0; // main lift up : need value here
+	int posMLD = 0; // main lift down : need value here
+	int posMBLU = 0; // mobile base lift up : need value here
+	int posMBLD = 0; // mobile base lift down : need value here
+	int posPinO = 0; // pincer open : need value here
+	int posPinC = 0; // pincer closed : need value here
+
+
 	while(true)
 	{
-		// Joysticks
-		int  rightJoy = vexRT[Ch2]; // right joystick
-		int  leftJoy = vexRT[Ch3]; // left joystick
-		// Buttons
-		word btn8UP = vexRT[Btn8U]; // button raise mobile base lift
-		word btn8DOWN = vexRT[Btn8D]; // button to lower mobile base lift
-		// Triggers
-		word rightTriggerUP = vexRT[Btn6U]; // trigger to raise main lift
-		word rightTriggerDOWN = vexRT[Btn6D]; // trigger to lower main lift
-		word leftTriggerUP = vexRT[Btn5U]; // trigger to open pincers
-		word leftTriggerDOWN = vexRT[Btn5D]; // trigger to close pincers
-
-		int posMLU = 0; // main lift up : need value here
-		int posMLD = 0; // main lift down : need value here
-		int posMBLU = 0; // mobile base lift up : need value here
-		int posMBLD = 0; // mobile base lift down : need value here
-		int posPinO = 0; // pincer open : need value here
-		int posPinC = 0; // pincer closed : need value here
-
 		// Drive Control
 		if(leftJoy > 15 || leftJoy < -15) //dead zones
 		{
@@ -228,7 +230,7 @@ void runUserControl()
 		}
 		else if(leftTriggerDOWN == 1)
 		{
-		  setPincerPower(posPinC);
+			setPincerPower(posPinC);
 		}
 		else
 		{
