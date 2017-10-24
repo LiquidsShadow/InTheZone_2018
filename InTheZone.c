@@ -115,7 +115,7 @@ task usercontrol()
 				}
         else if(rightTriggerDown == 1)
         {
-        	setLiftPower(power);
+        	setLiftPower(-power);
         //	int desired = 4000;
         //	int err = desired - liftPoten;
         	//while(abs(err)>1000)
