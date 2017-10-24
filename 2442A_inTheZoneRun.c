@@ -18,6 +18,7 @@
 // REPO: https://github.com/VTOW/BCI
 // DRIVING FUNCTIONS: https://gist.github.com/Octogonapus/c457dc87daadc0557dad5a7e2845710b
 // TURNING FUNCTIONS: https://gist.github.com/Octogonapus/2498b09f689599f92713c433c4c112cd
+// Make sure to add these to BCI-master folder
 
 #define BCI_USE_TIMER
 #define BCI_USE_POS_PID
