@@ -51,8 +51,6 @@ task usercontrol()
     bool btnEightRightPressed = false; //tracks if button was pressed
 
     char test = 0;
-    int prevLiftPoten = 0;
-    int adjustedLiftPoten = 0;
 
     while(true)
     {
@@ -104,33 +102,50 @@ task usercontrol()
 
         //Lift Motors
 
-      //  if(lifPoten-prevLiftPoten <= 0)
-        //		adjustedLiftPoten = -liftPoten;
-       // adjustedLiftPoten += 4095;
-
-				int power =127;
+        
         if(rightTriggerUp == 1)
         {
-				  setLiftPower(power);
-				}
+            setLiftPower(127);
+//            CODE BELOW COMMENTED OUT UNTIL NEXT SECTION CAN BE TESTED
+//            int desired = 150;
+//            int err = SensorValue[liftPoten] - desired;
+//            int power = 127;
+//            
+//            while(abs(err)>100) //adjust power of motors while error is outide of certain range, then set power to 0
+//            {
+//                err = SensorValue[liftPoten] - desired;
+//                
+//                if(err<2000) //if going up (error>2000), power is 127. Otherwise, adjust power
+//                    power = err*0.07;
+//                
+//                setLiftPower(power);
+//                
+//                writeDebugStream("Error of %d with a power of %d", err, power);
+//            }
+//            setLiftPower(0);
+        }
         else if(rightTriggerDown == 1)
         {
-        	setLiftPower(-power);
-        //	int desired = 4000;
-        //	int err = desired - liftPoten;
-        	//while(abs(err)>1000)
-         // {
-      		//	err = desired - liftPoten;
-      		//	writeDebugStream("",err);
- //       		if(err>2000)
- //         	  setLiftPower(-power);
- //       	  else
-         		 //	setLiftPower(-err*0.2);
-         //	}
+//        	setLiftPower(-power);
+        	int desired = 4000;
+        	int err = desired - SensorValue[liftPoten];
+            int power = -127;
+            
+        	while(abs(err)>100) //adjust power of motors while error is outide of certain range, then set power to 0
+            {
+      			err = desired - SensorValue[liftPoten];
+      			
+        		if(err<2000) //if going up (error>2000), power is 127. Otherwise, adjust power
+                    power = -err*0.07;
+                
+                setLiftPower(power);
+                
+                writeDebugStream("Error of %d with a power of %d", err, power);
+         	}
+            setLiftPower(0);
         }
         else
             setLiftPower(0);
-       // prevPoten =liftPoten;
 
         if(btnEightUp == 1)
             setForkliftPower(0);
