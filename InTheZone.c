@@ -1,4 +1,4 @@
-#pragma config(Sensor, in1,    leftClawPoten,  sensorPotentiometer)
+                        #pragma config(Sensor, in1,    leftClawPoten,  sensorPotentiometer)
 #pragma config(Sensor, in2,    liftPoten,      sensorPotentiometer)
 #pragma config(Sensor, in3,    rightClawPoten, sensorPotentiometer)
 #pragma config(Sensor, dgtl1,  leftQuad,       sensorQuadEncoder)
@@ -108,26 +108,30 @@ task usercontrol()
         //Lift Motors
         if(rightTriggerUp == 1)
         {
+        	//clearTimer(T1);
            	int desired = 4000;
         	int err = desired - SensorValue[liftPoten];
             int power = 127;
-
+		writeDebugStreamLine("Right Trigger Up Position Values:");
         	while(abs(err)>200) //adjust power of motors while error is outide of certain range, then set power to 0
             {
       			err = desired - SensorValue[liftPoten];
 
-        		if(err<2500) //if going up (error>2000), power is 127. Otherwise, adjust power
+        		//if(err<2500) //if going up (error>2000), power is 127. Otherwise, adjust power
                     power = err*0.02;
+
 
                 setLiftPower(power);
 
-                writeDebugStreamLine("Error of %d with a power of %d", err, power);
+                //writeDebugStreamLine("Time: %d, Poten: %d, Error: %d", time1[T1], SensorValue[liftPoten], err);
          	}
             setLiftPower(0);
         }
         else if(rightTriggerDown == 1)
         {
-        	int desired = 250;
+        //clearTimer(T1);
+        //writeDebugStreamLine("RightTriggerDown Poten Values");
+        	int desired = 150;
         	int err = SensorValue[liftPoten] - desired;
             int power = -127;
 
@@ -140,7 +144,7 @@ task usercontrol()
 
                 setLiftPower(power);
 
-                writeDebugStreamLine("Error of %d with a power of %d", err, power);
+               //writeDebugStreamLine("Tme: %d, Poten: %d, Error: %d", time1[T1], SensorValue[liftPoten], err);
          	}
             setLiftPower(0);
         }
