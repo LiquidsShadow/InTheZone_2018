@@ -120,10 +120,10 @@ task usercontrol()
         		//if(err<2500) //if going up (error>2000), power is 127. Otherwise, adjust power
                     power = err*0.02;
 
-
                 setLiftPower(power);
-
-                //writeDebugStreamLine("Time: %d, Poten: %d, Error: %d", time1[T1], SensorValue[liftPoten], err);
+//if(time1[T1]%10==0){
+//                writeDebugStreamLine("Time: %d, Poten: %d", time1[T1], SensorValue[liftPoten]);
+//              }
          	}
             setLiftPower(0);
         }
@@ -133,8 +133,7 @@ task usercontrol()
         //writeDebugStreamLine("RightTriggerDown Poten Values");
         	int desired = 150;
         	int err = SensorValue[liftPoten] - desired;
-            int power = -127;
-
+					int power = -127;
         	while(abs(err)>200) //adjust power of motors while error is outide of certain range, then set power to 0
             {
       			err = SensorValue[liftPoten] - desired;
@@ -143,6 +142,10 @@ task usercontrol()
                     power = -50 - 30*cosDegrees(SensorValue[liftPoten]*360/4000);
 
                 setLiftPower(power);
+
+//if(time1[T1]%10==0){
+//                writeDebugStreamLine("Time: %d, Poten: %d", time1[T1], SensorValue[liftPoten]);
+//              }
 
                //writeDebugStreamLine("Tme: %d, Poten: %d, Error: %d", time1[T1], SensorValue[liftPoten], err);
          	}
