@@ -1,38 +1,39 @@
+
 /*
 Sets left drive motors to a power.
-@param leftDrivePower -	a power
+@param pwr -	a power
 */
-void setLeftMotors(int leftDrivePower)
+void setLeftMotors(int pwr)
 {
-	motor[leftDriveBack] = leftDrivePower;
-	motor[leftDriveFront] = leftDrivePower;
+	motor[driveLeftBack] = pwr;
+	motor[driveRightBack] = pwr;
 }
 /*
 Sets right drive motors to a power.
-@param rightDrivePower - a power
+@param pwr - a power
 */
-void setRightMotors(int rightDrivePower)
+void setRightMotors(int pwr)
 {
-	motor[rightDriveBack] = rightDrivePower;
-	motor[rightDriveFront] = rightDrivePower;
+	motor[driveRightBack] = pwr;
+	motor[driveRightFront] = pwr;
 }
 /*
 Sets both right and left motors to a power
-@param drivePower - a power
+@param pwr - a power
 */
-void setAllDriveMotors(int drivePower)
+void setAllDriveMotors(int pwr)
 {
-	setLeftMotors(drivePower);
-	setRightMotors(drivePower);
+	setLeftMotors(pwr);
+	setRightMotors(pwr);
 }
 /*
 Sets mobile base lift motor(s) to a power.
 @param liftPower - a power.
 */
-void setMobileBaseLiftPower(int liftPower)
+void setMobileBaseLiftPower(int pwr)
 {
-	motor[mobileBaseLiftLeft] = liftPower;
-	motor[mobileBaseLiftRight] = liftPower;
+	motor[mobileBaseLiftLeft] = pwr;
+	motor[mobileBaseLiftRight] = pwr;
 }
 /*
 Sets main lift motor(s) to a power
@@ -40,7 +41,7 @@ Sets main lift motor(s) to a power
 */
 void setMainLiftPower(int liftPower)
 {
-	motor[mainLiftLeft] = liftPower;
+	motor[mainLiftLeft] = -liftPower;
 	motor[mainLiftRight] = liftPower;
 }
 /*
@@ -184,12 +185,12 @@ void runUserControl()
 
 		if(rightTriggerUP == 1)
 		{
-			setMainLiftPower(127);
+			setMainLiftPower(-127);
 			//setMainLiftToPos(posMLU);
 		}
 		else if(rightTriggerDOWN == 1)
 		{
-			setMainLiftPower(-127);
+			setMainLiftPower(127);
 			//setMainLiftToPos(posMLD);
 		}
 		else
