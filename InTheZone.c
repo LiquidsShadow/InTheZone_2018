@@ -7,8 +7,8 @@
 #pragma config(Sensor, dgtl12, rightPiston,    sensorDigitalOut)
 #pragma config(Motor,  port1,           claw2,         tmotorVex393_HBridge, openLoop, reversed)
 #pragma config(Motor,  port2,           test,          tmotorVex393_MC29, openLoop)
-#pragma config(Motor,  port3,           driveLeftFront, tmotorVex393_MC29, openLoop, reversed)
-#pragma config(Motor,  port4,           driveLeftBack, tmotorVex393_MC29, openLoop)
+#pragma config(Motor,  port3,           driveLeftFront, tmotorVex393_MC29, openLoop)
+#pragma config(Motor,  port4,           driveLeftBack, tmotorVex393_MC29, openLoop, reversed)
 #pragma config(Motor,  port5,           driveRightFront, tmotorVex393_MC29, openLoop)
 #pragma config(Motor,  port6,           driveRightBack, tmotorVex393_MC29, openLoop, reversed)
 #pragma config(Motor,  port7,           liftLeft,      tmotorVex393_MC29, openLoop)
@@ -27,9 +27,9 @@
 
 #include "Vex_Competition_Includes.c"
 #include "\InTheZoneLibrary.c"
-//#include "\BCI-master\BCI.h"
-//#include "..\BCI-master\drivingFunctions.c"
-//#include "..\BCI-master\turningFunctions.c"
+#include "\BCI-master\BCI.h"
+#include "\BCI-master\drivingFunctions.c"
+#include "\BCI-master\turningFunctions.c"
 
 
 void pre_auton()
@@ -54,6 +54,11 @@ task usercontrol()
 
     while(true)
     {
+    		//Test for auton
+    		if(vexRT[Btn7L] == 1)
+    		{
+    			driveStraight(200);
+    		}
 
         //Buttons and Joysticks
         int  rightJoy = vexRT[Ch2];
@@ -101,51 +106,49 @@ task usercontrol()
 
 
         //Lift Motors
-
-        
         if(rightTriggerUp == 1)
         {
-            setLiftPower(127);
-//            CODE BELOW COMMENTED OUT UNTIL NEXT SECTION CAN BE TESTED
-//            int desired = 150;
-//            int err = SensorValue[liftPoten] - desired;
-//            int power = 127;
-//            
-//            while(abs(err)>100) //adjust power of motors while error is outide of certain range, then set power to 0
-//            {
-//                err = SensorValue[liftPoten] - desired;
-//                
-//                if(err<2000) //if going up (error>2000), power is 127. Otherwise, adjust power
-//                    power = err*0.07;
-//                
-//                setLiftPower(power);
-//                
-//                writeDebugStream("Error of %d with a power of %d", err, power);
-//            }
-//            setLiftPower(0);
+           	int desired = 4000;
+        	int err = desired - SensorValue[liftPoten];
+            int power = 127;
+
+        	while(abs(err)>200) //adjust power of motors while error is outide of certain range, then set power to 0
+            {
+      			err = desired - SensorValue[liftPoten];
+
+        		if(err<2500) //if going up (error>2000), power is 127. Otherwise, adjust power
+                    power = err*0.02;
+
+                setLiftPower(power);
+
+                writeDebugStreamLine("Error of %d with a power of %d", err, power);
+         	}
+            setLiftPower(0);
         }
         else if(rightTriggerDown == 1)
         {
-//        	setLiftPower(-power);
-        	int desired = 4000;
-        	int err = desired - SensorValue[liftPoten];
+        	int desired = 250;
+        	int err = SensorValue[liftPoten] - desired;
             int power = -127;
-            
-        	while(abs(err)>100) //adjust power of motors while error is outide of certain range, then set power to 0
+
+        	while(abs(err)>200) //adjust power of motors while error is outide of certain range, then set power to 0
             {
-      			err = desired - SensorValue[liftPoten];
-      			
-        		if(err<2000) //if going up (error>2000), power is 127. Otherwise, adjust power
-                    power = -err*0.07;
-                
+      			err = SensorValue[liftPoten] - desired;
+
+        		//if(err<2200) //if going up (error>2000), power is 127. Otherwise, adjust power
+                    power = -50 - 30*cosDegrees(SensorValue[liftPoten]*360/4000);
+
                 setLiftPower(power);
-                
-                writeDebugStream("Error of %d with a power of %d", err, power);
+
+                writeDebugStreamLine("Error of %d with a power of %d", err, power);
          	}
             setLiftPower(0);
         }
         else
+        {
+        	//writeDebugStreamLine("else");
             setLiftPower(0);
+          }
 
         if(btnEightUp == 1)
             setForkliftPower(0);
