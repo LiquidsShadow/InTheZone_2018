@@ -53,3 +53,15 @@ void setClawPower(int power)
     motor[claw] = power;
     motor[claw2] = power;
 }
+
+void setLiftPos(int desired)
+{
+    int err = SensorValue[liftPoten] - desired;
+    while(abs(error)>200)
+    {
+        err = SensorValue[liftPoten] - desired;
+        power = (0.00152+2/3500)*err + (2+3.72);
+        setLiftPower(power);
+    }
+    setLiftPower(0);
+}

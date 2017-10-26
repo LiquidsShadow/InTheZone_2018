@@ -1,4 +1,4 @@
-                        #pragma config(Sensor, in1,    leftClawPoten,  sensorPotentiometer)
+#pragma config(Sensor, in1,    leftClawPoten,  sensorPotentiometer)
 #pragma config(Sensor, in2,    liftPoten,      sensorPotentiometer)
 #pragma config(Sensor, in3,    rightClawPoten, sensorPotentiometer)
 #pragma config(Sensor, dgtl1,  leftQuad,       sensorQuadEncoder)
@@ -82,6 +82,7 @@ task usercontrol()
         else if(btnEightRight == 0 && btnEightRightPressed) //if button is no longer being pressed, update bool
             btnEightRightPressed = false;
 
+        //Drive Motors
         if(fabs(rightJoy) >= 15)
             if(direction==1)
                 setRightMotors(rightJoy);
@@ -109,19 +110,16 @@ task usercontrol()
         if(rightTriggerUp == 1)
         {
         	//clearTimer(T1);
+            //writeDebugStreamLine("Right Trigger Up Position Values:");
            	int desired = 4000;
         	int err = desired - SensorValue[liftPoten];
             int power = 127;
-		writeDebugStreamLine("Right Trigger Up Position Values:");
         	while(abs(err)>200) //adjust power of motors while error is outide of certain range, then set power to 0
             {
       			err = desired - SensorValue[liftPoten];
-
-        		//if(err<2500) //if going up (error>2000), power is 127. Otherwise, adjust power
-                    power = err*0.02;
-
+                power = -(0.00152+2/3500)*err + (2+3.72);
                 setLiftPower(power);
-//if(time1[T1]%10==0){
+//              if(time1[T1]%10==0){
 //                writeDebugStreamLine("Time: %d, Poten: %d", time1[T1], SensorValue[liftPoten]);
 //              }
          	}
@@ -143,20 +141,20 @@ task usercontrol()
 
                 setLiftPower(power);
 
-//if(time1[T1]%10==0){
+//             if(time1[T1]%10==0){
 //                writeDebugStreamLine("Time: %d, Poten: %d", time1[T1], SensorValue[liftPoten]);
 //              }
 
-               //writeDebugStreamLine("Tme: %d, Poten: %d, Error: %d", time1[T1], SensorValue[liftPoten], err);
+//              writeDebugStreamLine("Tme: %d, Poten: %d, Error: %d", time1[T1], SensorValue[liftPoten], err);
          	}
             setLiftPower(0);
         }
         else
         {
-        	//writeDebugStreamLine("else");
             setLiftPower(0);
           }
 
+        //Mobile Goal Base Lifters
         if(btnEightUp == 1)
             setForkliftPower(0);
         else if(btnEightDown == 1)
