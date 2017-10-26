@@ -26,8 +26,10 @@ void setLeftMotors(int power)
 }
 void setRightMotors(int power)
 {
-    motor[driveRightFront] = power;
-    motor[driveRightBack] = power;
+    //motor[driveRightFront] = (int) (power*12/15);
+    //motor[driveRightBack] = (int) (power*12/15);
+    motor[driveRightFront] = power*0.55;
+    motor[driveRightBack] = power*0.55;
 }
 void setAllDriveMotors(int power)
 {
@@ -52,16 +54,110 @@ void setClawPower(int power)
 {
     motor[claw] = power;
     motor[claw2] = power;
+
+}
+void setLiftPos(int desired, int pAdjustment)
+{
+			int err = desired - SensorValue[liftPoten];
+			int power = 127;
+			while(abs(err)>200) //adjust power of motors while error is outide of certain range, then set power to 0
+			{
+				err = desired - SensorValue[liftPoten];
+				//power = (int) (((-1*(0.00152+2/3500)*(err) + (2+3))*127/5);
+				power = (int) (err*127/4095*pAdjustment);
+				setLiftPower(power);
+				//writeDebugStreamLine("Poten: %d, Power: %d", SensorValue[liftPoten], power);
+			}
+			setLiftPower(0);
 }
 
-void setLiftPos(int desired)
+void driveStraight(int dest) //in encoder units
 {
-    int err = SensorValue[liftPoten] - desired;
-    while(abs(error)>200)
-    {
-        err = SensorValue[liftPoten] - desired;
-        power = (0.00152+2/3500)*err + (2+3.72);
-        setLiftPower(power);
-    }
-    setLiftPower(0);
+	SensorValue[leftQuad] = 0;
+	SensorValue[rightQuad] = 0;
+	int errRight = dest;
+	int errLeft = dest;
+	int powerRight;
+	int powerLeft;
+
+	while(abs(errRight)>20 || abs(errLeft)>20)
+	{
+		if(abs(errRight)>20)
+		{
+			errRight = SensorValue[rightQuad] - dest;
+			powerRight = (int) (errRight*127/20*0.05);
+			setRightMotors(powerRight);
+		}
+		else
+		{
+			bool timerStarted = false;
+			if(!timerStarted)
+			{
+				clearTimer(T1);
+				timerStarted = true;
+			}
+			setRightMotors(100);
+			if(time100(T1)>10)
+				setRightMotors(0);
+		}
+
+		if(abs(errLeft)>20)
+		{
+			errLeft = SensorValue[leftQuad] - dest;
+			powerLeft = (int) (errLeft*127/20*0.99);
+			setLeftMotors(powerLeft);
+		}
+		else
+		{
+			bool timerStarted2 = false;
+			if(!timerStarted2)
+			{
+				clearTimer(T2);
+				timerStarted2 = true;
+			}
+			setLeftMotors(-63);
+			if(time100(T2)>1)
+				setLeftMotors(0);
+		}
+			writeDebugStreamLine("ErrR: %d, PowerR: %d", errRight,powerRight);
+			writeDebugStreamLine("ErrL: %d, PowerL: %d", errLeft,powerLeft);
+	}
+	//setAllDriveMotors(-63);
+	//wait1Msec(100);
+	setAllDriveMotors(0);
+}
+
+void turnDeg(int angle)
+{
+	SensorValue[rightQuad] = 0;
+	SensorValue[leftQuad] = 0;
+	int adjustedAngle = angle*360/20;
+	int err;
+	int power;
+	while(abs(err)<20)
+	{
+		err = adjustedAngle - SensorValue[rightQuad];
+		power = err*127/200 + 10;
+		setRightMotors(power);
+		setLeftMotors(-power);
+	}
+	setRightMotors(sgn(angle) * -63);
+	setLeftMotors(sgn(angle) * 63);
+	wait10Msec(3);
+	setAllDriveMotors(0);
+}
+
+void driveStraightNew(int dest,int kp, int kbias)
+{
+	SensorValue[rightQuad] = 0;
+	int err = dest;
+	int power = 127;
+	while(abs(err)>20)
+	{
+		err = dest - SensorValue[rightQuad];
+		power = err*127*kp + kbias;
+		setAllDriveMotors(power);
+		writeDebugStreamLine("err: %d, power: %d", err, power);
+	}
+	setAllDriveMotors(0);
 }

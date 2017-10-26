@@ -28,8 +28,8 @@
 #include "Vex_Competition_Includes.c"
 #include "\InTheZoneLibrary.c"
 #include "\BCI-master\BCI.h"
-#include "\BCI-master\drivingFunctions.c"
-#include "\BCI-master\turningFunctions.c"
+//#include "\BCI-master\drivingFunctions.c"
+//#include "\BCI-master\turningFunctions.c"
 
 
 void pre_auton()
@@ -37,135 +37,113 @@ void pre_auton()
 
 }
 
-task autonomous()
-
+void runBasicCompAuton()
 {
-    string side = "right";
-    //runBasicCompAuton();
-    //runProgSkills(side);
+	setForkliftPower(1);
+	driveStraightNew(500,0.9,0); //drive to mobile goal
+	//setLiftPos(3700,0.9); //lift up cone
+	//driveStraight(100);
+	//setForkliftPower(0); //pick up goal
+	//driveStraight(-300); //drive back
+	//turnDeg(200); //turn around
+	//setForkliftPower(1); //put down goal
+	//driveStraight(-200); //back away to score
+}
+
+task autonomous()
+{
+	string side = "right";
+	//runBasicCompAuton();
+	//runProgSkills(side);
 }
 
 task usercontrol()
 {
-    char direction = 1; //controls direction
-    bool btnEightRightPressed = false; //tracks if button was pressed
+	char direction = 1; //controls direction
+	bool btnEightRightPressed = false; //tracks if button was pressed
 
-    char test = 0;
+	char test = 0;
 
-    while(true)
-    {
-    		//Test for auton
-    		if(vexRT[Btn7L] == 1)
-    		{
-    			driveStraight(200);
-    		}
+	while(true)
+	{
+		//Test for auton
+		if(vexRT[Btn7L] == 1)
+		{
+			runBasicCompAuton();
+		}
 
-        //Buttons and Joysticks
-        int  rightJoy = vexRT[Ch2];
-        int  leftJoy = vexRT[Ch3];
-        word rightTriggerUp = vexRT[Btn6U]; //for up lift
-        word rightTriggerDown = vexRT[Btn6D]; //for down lift
-        word leftTriggerUp = vexRT[Btn5U]; //for pincer close
-        word leftTriggerDown = vexRT[Btn5D]; //for pincer open
-        word btnEightUp = vexRT[Btn8U];
-        word btnEightDown = vexRT[Btn8D]; //for lift to set point
-        word btnSevenUp = vexRT[Btn7U]; //for folding claws
-        word btnSevenD = vexRT[Btn7D]; //180 degrees
+		//Buttons and Joysticks
+		int  rightJoy = vexRT[Ch2];
+		int  leftJoy = vexRT[Ch3];
+		word rightTriggerUp = vexRT[Btn6U]; //for up lift
+		word rightTriggerDown = vexRT[Btn6D]; //for down lift
+		word leftTriggerUp = vexRT[Btn5U]; //for pincer close
+		word leftTriggerDown = vexRT[Btn5D]; //for pincer open
+		word btnEightUp = vexRT[Btn8U];
+		word btnEightDown = vexRT[Btn8D]; //for lift to set point
+		word btnSevenUp = vexRT[Btn7U]; //for folding claws
+		word btnSevenD = vexRT[Btn7D]; //180 degrees
 
-        word btnEightRight = vexRT[Btn8R]; //for toggling reverse direction
+		word btnEightRight = vexRT[Btn8R]; //for toggling reverse direction
 
-        if(btnEightRight == 1 && !btnEightRightPressed){ //if button was pressed and was not already being pressed, change sign
+		if(btnEightRight == 1 && !btnEightRightPressed){ //if button was pressed and was not already being pressed, change sign
 
-            direction = -direction;
-            btnEightRightPressed = true;
-        }
-        else if(btnEightRight == 0 && btnEightRightPressed) //if button is no longer being pressed, update bool
-            btnEightRightPressed = false;
+			direction = -direction;
+			btnEightRightPressed = true;
+		}
+		else if(btnEightRight == 0 && btnEightRightPressed) //if button is no longer being pressed, update bool
+			btnEightRightPressed = false;
 
-        //Drive Motors
-        if(fabs(rightJoy) >= 15)
-            if(direction==1)
-                setRightMotors(rightJoy);
-            else
-                setLeftMotors(rightJoy);
-        else
-            if(direction==1)
-                setRightMotors(0);
-            else
-                setLeftMotors(0);
+		//Drive Motors
+		if(fabs(rightJoy) >= 15)
+			if(direction==1)
+			setRightMotors(rightJoy);
+		else
+			setLeftMotors(rightJoy);
+		else
+			if(direction==1)
+			setRightMotors(0);
+		else
+			setLeftMotors(0);
 
-        if(fabs(leftJoy) >= 15)
-            if(direction==1)
-                setLeftMotors(leftJoy);
-            else
-                setRightMotors(leftJoy);
-        else
-            if(direction==1)
-                setLeftMotors(0);
-            else
-                setRightMotors(0);
+		if(fabs(leftJoy) >= 15)
+			if(direction==1)
+			setLeftMotors(leftJoy);
+		else
+			setRightMotors(leftJoy);
+		else
+			if(direction==1)
+			setLeftMotors(0);
+		else
+			setRightMotors(0);
 
 
-        //Lift Motors
-        if(rightTriggerUp == 1)
-        {
-        	//clearTimer(T1);
-            //writeDebugStreamLine("Right Trigger Up Position Values:");
-           	int desired = 4000;
-        	int err = desired - SensorValue[liftPoten];
-            int power = 127;
-        	while(abs(err)>200) //adjust power of motors while error is outide of certain range, then set power to 0
-            {
-      			err = desired - SensorValue[liftPoten];
-                power = -(0.00152+2/3500)*err + (2+3.72);
-                setLiftPower(power);
-//              if(time1[T1]%10==0){
-//                writeDebugStreamLine("Time: %d, Poten: %d", time1[T1], SensorValue[liftPoten]);
-//              }
-         	}
-            setLiftPower(0);
-        }
-        else if(rightTriggerDown == 1)
-        {
-        //clearTimer(T1);
-        //writeDebugStreamLine("RightTriggerDown Poten Values");
-        	int desired = 150;
-        	int err = SensorValue[liftPoten] - desired;
-					int power = -127;
-        	while(abs(err)>200) //adjust power of motors while error is outide of certain range, then set power to 0
-            {
-      			err = SensorValue[liftPoten] - desired;
+		//Lift Motors
+		if(rightTriggerUp == 1)
+		{
+			setLiftPos(4050,0.9);
+		}
+		else if(rightTriggerDown == 1)
+		{
+			setLiftPos(250,0.88);
+		}
+		else
+		{
+			setLiftPower(0);
+		}
 
-        		//if(err<2200) //if going up (error>2000), power is 127. Otherwise, adjust power
-                    power = -50 - 30*cosDegrees(SensorValue[liftPoten]*360/4000);
+		//Mobile Goal Base Lifters
+		if(btnEightUp == 1)
+			setForkliftPower(0);
+		else if(btnEightDown == 1)
+			setForkliftPower(1);
 
-                setLiftPower(power);
-
-//             if(time1[T1]%10==0){
-//                writeDebugStreamLine("Time: %d, Poten: %d", time1[T1], SensorValue[liftPoten]);
-//              }
-
-//              writeDebugStreamLine("Tme: %d, Poten: %d, Error: %d", time1[T1], SensorValue[liftPoten], err);
-         	}
-            setLiftPower(0);
-        }
-        else
-        {
-            setLiftPower(0);
-          }
-
-        //Mobile Goal Base Lifters
-        if(btnEightUp == 1)
-            setForkliftPower(0);
-        else if(btnEightDown == 1)
-            setForkliftPower(1);
-
-        //pincer
-        if(leftTriggerDown == 1)
-            setClawPower(127);
-        else if(leftTriggerUp == 1)
-            setClawPower(-127);
-        else
-            setClawPower(0);
-    }
+		//pincer
+		if(leftTriggerDown == 1)
+			setClawPower(127);
+		else if(leftTriggerUp == 1)
+			setClawPower(-127);
+		else
+			setClawPower(0);
+	}
 }
