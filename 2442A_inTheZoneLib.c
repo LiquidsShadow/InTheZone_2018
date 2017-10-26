@@ -4,6 +4,7 @@ const float PINC_CONV = 0.25; // Pincer Conversion
 const float DRIVE_CONV_R = 0.75; // Right Drive Conversion
 const float DRIVE_CONV_L = 0.9; // Left Drive Conversion
 
+enum DEAD_ZONES { DRIVE_EN = 10, LIFT_PWR = 5, PINC_PWR = LIFT_PWR, JOY = 15 }; // Dead zones for drive, lifts, and pincers
 enum CTRL_POS {MLU = 0, MLD = 0, MBLU = 0, MBLD = 0, PIN_O = 0, PIN_C = 0}; // Control positions for lifts and pincers
 
 /*
@@ -55,8 +56,8 @@ void driveDist(int ticks)
 	float distR = END_EN_R - SensorValue[rightQuad]; // distance to travel (right)
 	float distL = END_EN_L - SensorValue[leftQuad]; // distance to travel (left)
 
-	bool EnR_atDestination = fabs(distR) <= 10; // state of being at destination (right)
-	bool EnL_atDestination = fabs(distL) <= 10; // state of being at destination (left)
+	bool EnR_atDestination = fabs(distR) <= (float) DRIVE_EN; // state of being at destination (right)
+	bool EnL_atDestination = fabs(distL) <= (float) DRIVE_EN; // state of being at destination (left)
 
 	/*
 	While the robot has not reached its destination:
@@ -77,8 +78,8 @@ void driveDist(int ticks)
 			setLeftMotors((distL/END_EN_L) * maxPwr * DRIVE_CONV_L);
 		}
 
-		EnR_atDestination = fabs(distR) <= 10;
-		EnL_atDestination = fabs(distL) <= 10;
+		EnR_atDestination = fabs(distR) <= (float) DRIVE_EN;
+		EnL_atDestination = fabs(distL) <= (float) DRIVE_EN;
 	}
 	while (!EnR_atDestination && !EnL_atDestination);
 
@@ -101,31 +102,39 @@ void turn(int ticks)
 	float distR = END_EN_R - SensorValue[rightQuad]; // distance to travel (right)
 	float distL = END_EN_L - SensorValue[leftQuad]; // distance to travel (left)
 
-	bool EnR_atDestination = fabs(distR) <= 10; // state of being at destination (right)
-	bool EnL_atDestination = fabs(distL) <= 10; // state of being at destination (left)
+	bool EnR_atDestination = fabs(distR) <= (float) DRIVE_EN; // state of being at destination (right)
+	bool EnL_atDestination = fabs(distL) <= (float) DRIVE_EN; // state of being at destination (left)
 
 	do
 	{
-		if (sgn(ticks) == -1)
+		if (!EnL_atDestination)
 		{
-			if (!EnL_atDestination)
-			{
+			if (sgn(ticks) == -1) {
+
 			}
-			if (!EnR_atDestination)
-			{
+			else {
+
 			}
+
+			distL = END_EN_L - SensorValue[leftQuad];
+			EnL_atDestination = fabs(distL) <= (float) DRIVE_EN;
 		}
-		else
+		if (!EnR_atDestination)
 		{
-			if (!EnL_atDestination)
-			{
+			if (sgn(ticks) == -1)	{
+
 			}
-			if (!EnR_atDestination)
-			{
+			else {
+
 			}
+
+			distR = END_EN_R - SensorValue[rightQuad];
+			EnR_atDestination = fabs(distR) <= (float) DRIVE_EN;
 		}
 	}
 	while (!EnR_atDestination && !EnL_atDestination);
+
+	setAllDriveMotors(0);
 }
 /*
 Sets mobile base lift motor(s) to a power.
@@ -162,7 +171,7 @@ void setMobileBaseLiftToPos(int liftPos)
 
 		setMainLiftPower(pwr);
 	}
-	while (fabs(pwr) >= 5);
+	while (fabs(pwr) >= (float) LIFT_PWR);
 }
 /*
 Sets main lift to a position while proportionally decreasing motor power as lift reaches desired position
@@ -181,7 +190,7 @@ void setMainLiftToPos(int liftPos)
 
 		setMainLiftPower(pwr);
 	}
-	while (fabs(pwr) >= 5);
+	while (fabs(pwr) >= (float) LIFT_PWR);
 }
 /*
 Sets pincer motor(s) to a power
@@ -208,7 +217,7 @@ void setPincersToPos(int pincerPos)
 
 		setPincerPower(pwr);
 	}
-	while (fabs(pwr) >= 5);
+	while (fabs(pwr) >= (float) PINC_PWR);
 }
 /*
 Runs user control
@@ -231,14 +240,14 @@ void runUserControl()
 		word leftTriggerDOWN = vexRT[Btn5D]; // trigger to close pincers
 
 		// Drive Control
-		if(fabs(leftJoy) > 15) {
+		if(fabs(leftJoy) > (float) JOY) {
 			setLeftMotors(leftJoy);
 		}
 		else {
 			setLeftMotors(0);
 		}
 
-		if(fabs(rightJoy) > 15) {
+		if(fabs(rightJoy) > (float) JOY) {
 			setRightMotors(rightJoy);
 		}
 		else {
