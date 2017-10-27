@@ -37,23 +37,58 @@ void pre_auton()
 
 }
 
-void runBasicCompAuton()
+void runBasicCompAuton(int zone)
 {
+	//IMPORTANT: Place end of robot 16 cm along starting bar and other end 10 cm away from the wall
+	clearTimer(T1);
 	setForkliftPower(1);
-	driveStraightNew(500,0.9,0); //drive to mobile goal
-	//setLiftPos(3700,0.9); //lift up cone
-	//driveStraight(100);
-	//setForkliftPower(0); //pick up goal
-	//driveStraight(-300); //drive back
-	//turnDeg(200); //turn around
-	//setForkliftPower(1); //put down goal
-	//driveStraight(-200); //back away to score
+	setLiftPos(3700,10); //lift up cone
+	setLiftPower(-15);
+	driveStraightNew(570,1,0); //drive to mobile goal
+	writeDebugStreamLine("move to goal");
+	//driveStraightNew(150,1,0); //drive to mobile goal
+	wait10Msec(100);
+	setForkliftPower(0); //pick up goal
+	setLiftPower(0);
+
+	wait10Msec(100);
+	driveStraightNew(-400,1,0); //drive back
+	wait10Msec(100);
+	writeDebugStreamLine("turn");
+	turnDeg(200); //turn around
+	if(zone == 5)
+	{
+		driveStraightNew(100,1,0);
+	}
+	else if(zone == 10)
+	{
+		driveStraightNew(200,1,0);
+	}
+	wait10Msec(1);
+
+	setClawPower(127);
+	setLiftPos(3700,10); //lift up cone
+	setLiftPower(-15);
+	setClawPower(0);
+
+	setForkliftPower(1); //put down goal
+	wait10Msec(50);
+	if(zone == 5)
+	{
+		driveStraightNew(-100,1,0); //back away to score
+	}
+	else if(zone == 10)
+	{
+		driveStraightNew(-200,1,0); //back away to score
+	}
+	setLiftPower(0); //stop killing motors
+	writeDebugStreamLine("Time: %d", time100(T1));
 }
 
 task autonomous()
 {
 	string side = "right";
-	//runBasicCompAuton();
+	runBasicCompAuton(5);
 	//runProgSkills(side);
 }
 
@@ -62,15 +97,9 @@ task usercontrol()
 	char direction = 1; //controls direction
 	bool btnEightRightPressed = false; //tracks if button was pressed
 
-	char test = 0;
 
 	while(true)
 	{
-		//Test for auton
-		if(vexRT[Btn7L] == 1)
-		{
-			runBasicCompAuton();
-		}
 
 		//Buttons and Joysticks
 		int  rightJoy = vexRT[Ch2];
@@ -81,9 +110,8 @@ task usercontrol()
 		word leftTriggerDown = vexRT[Btn5D]; //for pincer open
 		word btnEightUp = vexRT[Btn8U];
 		word btnEightDown = vexRT[Btn8D]; //for lift to set point
-		word btnSevenUp = vexRT[Btn7U]; //for folding claws
-		word btnSevenD = vexRT[Btn7D]; //180 degrees
-
+		word btnSevenD = vexRT[Btn7D]; //for lift to stationary goal
+		word btnSevenUp = vexRT[Btn7U]; //for lift to match loads
 		word btnEightRight = vexRT[Btn8R]; //for toggling reverse direction
 
 		if(btnEightRight == 1 && !btnEightRightPressed){ //if button was pressed and was not already being pressed, change sign
@@ -127,10 +155,19 @@ task usercontrol()
 		{
 			setLiftPos(250,0.88);
 		}
-		else
+		//else if(btnSevenD==1)
+		//{
+		//	setLiftPos(2050,1.2);
+		//}
+		else if(btnSevenUp == 1)
 		{
-			setLiftPower(0);
+			setLiftPos(1300,0.9);
+			setClawPower(-80);
 		}
+		//else
+		//{
+		//	setLiftPower(0);
+		//}
 
 		//Mobile Goal Base Lifters
 		if(btnEightUp == 1)
@@ -140,10 +177,26 @@ task usercontrol()
 
 		//pincer
 		if(leftTriggerDown == 1)
-			setClawPower(127);
+		{
+			setClawPower(80);
+			//if(SensorValue[liftPoten]<500 || SensorValue[liftPoten]>150)
+			//	setLiftPower(-30);
+			//else
+			//	setLiftPower(0);
+		}
 		else if(leftTriggerUp == 1)
-			setClawPower(-127);
+		{
+			setClawPower(-80);
+			//if(SensorValue[liftPoten]<500 || SensorValue[liftPoten]>150)
+			//	setLiftPower(-30);
+			//else
+			//	setLiftPower(0);
+		}
 		else
+		{
 			setClawPower(0);
+			//if(SensorValue[liftPoten]<500)
+			//	setLiftPower(0);
+		}
 	}
 }
