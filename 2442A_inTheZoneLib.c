@@ -41,7 +41,7 @@ Drives for a distance:
 - If ticks < 0 => reverse
 - If ticks > 0 => forwards
 */
-void driveDist(int ticks)
+void drive(int ticks)
 {
 	int maxPwr = 127; // will be proportionally decreased as robot approaches destination
 
@@ -67,19 +67,17 @@ void driveDist(int ticks)
 	*/
 	do
 	{
-		if(!EnR_atDestination)
-		{
-			distR = END_EN_R - SensorValue[rightQuad];
-			setRightMotors((distR/END_EN_R) * maxPwr * DRIVE_CONV_R);
+		if(!EnR_atDestination) { // tracking right encoder
+			distR = END_EN_R - SensorValue[rightQuad]; // update right distance
+			setRightMotors((int) (((START_EN_R + distR)/END_EN_R) * maxPwr * DRIVE_CONV_R)); // update right motors
 		}
-		if(!EnL_atDestination)
-		{
-			distL = END_EN_L - SensorValue[leftQuad];
-			setLeftMotors((distL/END_EN_L) * maxPwr * DRIVE_CONV_L);
+		if(!EnL_atDestination) { // tracking left encoder
+			distL = END_EN_L - SensorValue[leftQuad]; // update left distance
+			setLeftMotors((int) (((START_EN_L + distL)/END_EN_L) * maxPwr * DRIVE_CONV_L)); // update left motors
 		}
 
-		EnR_atDestination = fabs(distR) <= (float) DRIVE_EN;
-		EnL_atDestination = fabs(distL) <= (float) DRIVE_EN;
+		EnR_atDestination = fabs(distR) <= (float) DRIVE_EN; // update state of right encoder at its destination
+		EnL_atDestination = fabs(distL) <= (float) DRIVE_EN; // update state of left encoder at its destination
 	}
 	while (!EnR_atDestination && !EnL_atDestination);
 
@@ -92,49 +90,36 @@ Turns the robot by an angle
 */
 void turn(int ticks)
 {
-	int maxPwr = 127; // will be proportionally decreased as robot approaches destination
+	int startEn; // start value
 
-	const int START_EN_L = SensorValue[leftQuad]; // left encoder start
-	const int START_EN_R = SensorValue[rightQuad]; // right encoder start
-	const int END_EN_L = START_EN_L + ticks; // end encoder value
-	const int END_EN_R = START_EN_R + ticks; // end encoder value
+	if (sgn(ticks) == -1) { // if turning left => start taken from right quad
+		startEn = SensorValue[rightQuad];
+	}
+	else { // if turning right => start taken from left quad
+		startEn = SensorValue[leftQuad];
+	}
 
-	float distR = END_EN_R - SensorValue[rightQuad]; // distance to travel (right)
-	float distL = END_EN_L - SensorValue[leftQuad]; // distance to travel (left)
+	const int END_EN = startEn + ticks; // end value
+	int dist = END_EN - startEn; // distance
 
-	bool EnR_atDestination = fabs(distR) <= (float) DRIVE_EN; // state of being at destination (right)
-	bool EnL_atDestination = fabs(distL) <= (float) DRIVE_EN; // state of being at destination (left)
+	bool atDestination = fabs(dist) <= (float) DRIVE_EN; // state whether or not robot has reached destination
 
 	do
 	{
-		if (!EnL_atDestination)
-		{
-			if (sgn(ticks) == -1) {
-
-			}
-			else {
-
-			}
-
-			distL = END_EN_L - SensorValue[leftQuad];
-			EnL_atDestination = fabs(distL) <= (float) DRIVE_EN;
+		if (sgn(ticks) == -1) { // if turning left => update right motors
+			setRightMotors((int) (((startEn + dist)/END_EN) * 127 * DRIVE_CONV_R));
+			dist = END_EN - SensorValue[rightQuad]; // update distance with right quad
 		}
-		if (!EnR_atDestination)
-		{
-			if (sgn(ticks) == -1)	{
-
-			}
-			else {
-
-			}
-
-			distR = END_EN_R - SensorValue[rightQuad];
-			EnR_atDestination = fabs(distR) <= (float) DRIVE_EN;
+		else { // if turning right => update left motors
+			setLeftMotors((int) (((startEn + dist)/END_EN) * 127 * DRIVE_CONV_L));
+			dist = END_EN - SensorValue[leftQuad]; // update distance with left quad
 		}
+
+		atDestination = fabs(dist) <= (float) DRIVE_EN; // update reached state
 	}
-	while (!EnR_atDestination && !EnL_atDestination);
+	while (!atDestination);
 
-	setAllDriveMotors(0);
+	setAllDriveMotors(0); // clean
 }
 /*
 Sets mobile base lift motor(s) to a power.
@@ -320,5 +305,8 @@ void runAuton(string side)
 	// - side independent -
 	// drive forward to move mobile base into scoring zone
 
+	setAllDriveMotors(127);
+	wait1Msec(3000);
+	setAllDriveMotors(0);
 
 }
