@@ -39,47 +39,45 @@ void pre_auton()
 
 void runBasicCompAuton(int zone)
 {
-	//IMPORTANT: Place end of robot 16 cm along starting bar and other end 10 cm away from the wall
 	clearTimer(T1);
+
+	//Drop mobile base lift, lift cone, and drive straight
 	setForkliftPower(1);
 	setLiftPos(3700,10); //lift up cone
 	setLiftPower(-15);
-	driveStraightNew(570,1,0); //drive to mobile goal
-	writeDebugStreamLine("move to goal");
-	//driveStraightNew(150,1,0); //drive to mobile goal
+	driveStraight(570,1,0); //drive to mobile goal
 	wait10Msec(70);
+
+	//pick up goal
 	setForkliftPower(0); //pick up goal
 	setLiftPower(0);
-
 	wait10Msec(70);
-	driveStraightNew(-400,1,0); //drive back
+
+	//drive back
+	driveStraight(-400,1,0); //drive back
 	wait10Msec(80);
-	writeDebugStreamLine("turn");
+
+	//turn around and drive straight
 	turnDeg(200); //turn around
 	if(zone == 5)
 	{
-		driveStraightNew(100,1,0);
+		driveStraight(100,1,0);
 	}
 	else if(zone == 10)
 	{
-		driveStraightNew(150,1,0);
+		driveStraight(150,1,0);
 	}
 	wait10Msec(1);
 
+	//Score cone and goal
 	setClawPower(127);
 	setLiftPos(3700,10); //lift up cone
 	setLiftPower(-15);
 	setClawPower(0);
 	setForkliftPower(1); //put down goal
 	wait10Msec(40);
-	//if(zone == 5)
-	//{
-		driveStraightNew(-100,1,0); //back away to score
-	//}
-	//else if(zone == 10)
-	//{
-	//	driveStraightNew(-200,1,0); //back away to score
-	//}
+
+	driveStraight(-100,1,0); //back away to score
 	setLiftPower(0); //stop killing motors
 	writeDebugStreamLine("Time: %d", time100(T1));
 }
@@ -93,6 +91,8 @@ task autonomous()
 
 task usercontrol()
 {
+	enum PotenValues {BACK = 350,MATCHLOAD = 0, SCORE = 4095};
+	enum kpValues {BackFromScore = 0, ScoreFromBack = 0, MatchloadFromScore = 0, ScoreFromMatchload = 0};
 	SensorValue[rightQuad] = 0;
 	SensorValue[leftQuad] = 0;
 	char direction = 1; //controls direction
@@ -150,11 +150,11 @@ task usercontrol()
 		//Lift Motors
 		if(rightTriggerUp == 1)
 		{
-			setLiftPos(4050,0.9);
+			setLiftPos(SCORE,0.9);
 		}
 		else if(rightTriggerDown == 1)
 		{
-			setLiftPos(250,0.88);
+			setLiftPos(BACK,0.88);
 		}
 		//else if(btnSevenD==1)
 		//{
@@ -162,7 +162,7 @@ task usercontrol()
 		//}
 		else if(btnSevenUp == 1)
 		{
-			setLiftPos(1300,0.9);
+			setLiftPos(MATCHLOAD,0.9);
 			setClawPower(-80);
 		}
 		//else
