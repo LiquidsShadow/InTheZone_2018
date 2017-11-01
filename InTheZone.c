@@ -91,13 +91,22 @@ task autonomous()
 
 task usercontrol()
 {
+
 	enum PotenValues {BACK = 350,MATCHLOAD = 0, SCORE = 4095};
 	enum kpValues {BackFromScore = 0, ScoreFromBack = 0, MatchloadFromScore = 0, ScoreFromMatchload = 0};
 	SensorValue[rightQuad] = 0;
 	SensorValue[leftQuad] = 0;
-	char direction = 1; //controls direction
-	bool btnEightRightPressed = false; //tracks if button was pressed
+	//char direction = 1; //controls direction
+	//bool btnEightRightPressed = false; //tracks if button was pressed
 
+
+	int driveRight;
+	int driveLeft;
+	int liftPower;
+	int clawPower;
+	int forkliftPower;
+	int liftDesired;
+	int liftErr;
 
 	while(true)
 	{
@@ -113,38 +122,58 @@ task usercontrol()
 		word btnEightDown = vexRT[Btn8D]; //for lift to set point
 		word btnSevenD = vexRT[Btn7D]; //for lift to stationary goal
 		word btnSevenUp = vexRT[Btn7U]; //for lift to match loads
-		word btnEightRight = vexRT[Btn8R]; //for toggling reverse direction
-
-		if(btnEightRight == 1 && !btnEightRightPressed){ //if button was pressed and was not already being pressed, change sign
-
-			direction = -direction;
-			btnEightRightPressed = true;
-		}
-		else if(btnEightRight == 0 && btnEightRightPressed) //if button is no longer being pressed, update bool
-			btnEightRightPressed = false;
+		word liftPos = SensorValue[liftPoten];
 
 		//Drive Motors
 		if(fabs(rightJoy) >= 15)
-			if(direction==1)
 			setRightMotors(rightJoy);
 		else
-			setLeftMotors(rightJoy);
-		else
-			if(direction==1)
 			setRightMotors(0);
+
+		if(fabs(leftJoy) >= 15)
+			setLeftMotors(leftJoy);
 		else
 			setLeftMotors(0);
 
-		if(fabs(leftJoy) >= 15)
-			if(direction==1)
-			setLeftMotors(leftJoy);
-		else
-			setRightMotors(leftJoy);
-		else
-			if(direction==1)
-			setLeftMotors(0);
-		else
-			setRightMotors(0);
+		//Lift Motors
+		liftErr = liftDesired - liftPos;
+		if(fabs(liftErr)<50)
+		{
+
+		}
+
+		//word btnEightRight = vexRT[Btn8R]; //for toggling reverse direction
+
+		//if(btnEightRight == 1 && !btnEightRightPressed){ //if button was pressed and was not already being pressed, change sign
+
+		//	direction = -direction;
+		//	btnEightRightPressed = true;
+		//}
+		//else if(btnEightRight == 0 && btnEightRightPressed) //if button is no longer being pressed, update bool
+		//	btnEightRightPressed = false;
+
+		//Drive Motors
+		//if(fabs(rightJoy) >= 15)
+		//	if(direction==1)
+		//	driveRight = rightJoy;
+		//else
+		//	driveLeft = rightJoy;
+		//else
+		//	if(direction==1)
+		//	driveRight = 0;
+		//else
+		//	driveLeft = 0;
+
+		//if(fabs(leftJoy) >= 15)
+		//	if(direction==1)
+		//	setLeftMotors(leftJoy);
+		//else
+		//	setRightMotors(leftJoy);
+		//else
+		//	if(direction==1)
+		//	setLeftMotors(0);
+		//else
+		//	setRightMotors(0);
 
 		writeDebugStreamLine("RightQuad: %d, LeftQuad: %d", SensorValue[rightQuad], SensorValue[leftQuad]);
 		//Lift Motors
