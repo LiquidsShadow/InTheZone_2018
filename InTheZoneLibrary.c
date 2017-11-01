@@ -27,8 +27,8 @@ void setLeftMotors(int power)
 
 void setRightMotors(int power)
 {
-    motor[driveRightFront] = (int) (power*0.55);
-    motor[driveRightBack] = (int) (power*0.55);
+    motor[driveRightFront] = power;//(int) (power*0.55);
+    motor[driveRightBack] = power;//(int) (power*0.55);
   }
 void setAllDriveMotors(int power)
 {

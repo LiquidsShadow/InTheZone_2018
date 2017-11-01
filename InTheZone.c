@@ -47,13 +47,13 @@ void runBasicCompAuton(int zone)
 	driveStraightNew(570,1,0); //drive to mobile goal
 	writeDebugStreamLine("move to goal");
 	//driveStraightNew(150,1,0); //drive to mobile goal
-	wait10Msec(100);
+	wait10Msec(70);
 	setForkliftPower(0); //pick up goal
 	setLiftPower(0);
 
-	wait10Msec(100);
+	wait10Msec(70);
 	driveStraightNew(-400,1,0); //drive back
-	wait10Msec(100);
+	wait10Msec(80);
 	writeDebugStreamLine("turn");
 	turnDeg(200); //turn around
 	if(zone == 5)
@@ -62,7 +62,7 @@ void runBasicCompAuton(int zone)
 	}
 	else if(zone == 10)
 	{
-		driveStraightNew(200,1,0);
+		driveStraightNew(150,1,0);
 	}
 	wait10Msec(1);
 
@@ -70,17 +70,16 @@ void runBasicCompAuton(int zone)
 	setLiftPos(3700,10); //lift up cone
 	setLiftPower(-15);
 	setClawPower(0);
-
 	setForkliftPower(1); //put down goal
-	wait10Msec(50);
-	if(zone == 5)
-	{
+	wait10Msec(40);
+	//if(zone == 5)
+	//{
 		driveStraightNew(-100,1,0); //back away to score
-	}
-	else if(zone == 10)
-	{
-		driveStraightNew(-200,1,0); //back away to score
-	}
+	//}
+	//else if(zone == 10)
+	//{
+	//	driveStraightNew(-200,1,0); //back away to score
+	//}
 	setLiftPower(0); //stop killing motors
 	writeDebugStreamLine("Time: %d", time100(T1));
 }
@@ -88,12 +87,14 @@ void runBasicCompAuton(int zone)
 task autonomous()
 {
 	string side = "right";
-	runBasicCompAuton(5);
+	runBasicCompAuton(10);
 	//runProgSkills(side);
 }
 
 task usercontrol()
 {
+	SensorValue[rightQuad] = 0;
+	SensorValue[leftQuad] = 0;
 	char direction = 1; //controls direction
 	bool btnEightRightPressed = false; //tracks if button was pressed
 
@@ -145,7 +146,7 @@ task usercontrol()
 		else
 			setRightMotors(0);
 
-
+		writeDebugStreamLine("RightQuad: %d, LeftQuad: %d", SensorValue[rightQuad], SensorValue[leftQuad]);
 		//Lift Motors
 		if(rightTriggerUp == 1)
 		{
