@@ -3,6 +3,9 @@
 #pragma config(Sensor, in3,    rightClawPoten, sensorPotentiometer)
 #pragma config(Sensor, dgtl1,  leftQuad,       sensorQuadEncoder)
 #pragma config(Sensor, dgtl3,  rightQuad,      sensorQuadEncoder)
+#pragma config(Sensor, dgtl8,  redLED,         sensorLEDtoVCC)
+#pragma config(Sensor, dgtl9,  yellowLED,      sensorLEDtoVCC)
+#pragma config(Sensor, dgtl10, greenLED,       sensorLEDtoVCC)
 #pragma config(Sensor, dgtl11, leftPiston,     sensorDigitalOut)
 #pragma config(Sensor, dgtl12, rightPiston,    sensorDigitalOut)
 #pragma config(Motor,  port1,           claw2,         tmotorVex393_HBridge, openLoop, reversed)
@@ -31,6 +34,24 @@
 //#include "\BCI-master\drivingFunctions.c"
 //#include "\BCI-master\turningFunctions.c"
 
+int desired;
+float kp;
+task setLiftPos()
+{
+			clearTimer(T2);
+			int err = desired - SensorValue[liftPoten];
+			int power = 127;
+
+			while(abs(err)>200 && time100(T2)<40) //adjust power of motors while error is outide of certain range, then set power to 0
+			{
+				err = desired - SensorValue[liftPoten];
+				//power = (int) (((-1*(0.00152+2/3500)*(err) + (2+3))*127/5);
+				power = (int) (err*127/4095*kp);
+				setLiftPower(power);
+				writeDebugStreamLine("Poten: %d, Power: %d, Error: %d", SensorValue[liftPoten], power,err);
+			}
+			setLiftPower(0);
+}
 
 void pre_auton()
 {
@@ -43,7 +64,8 @@ void runBasicCompAuton(int zone)
 
 	//Drop mobile base lift, lift cone, and drive straight
 	setForkliftPower(1);
-	setLiftPos(3700,10); //lift up cone
+	desired = 3700;
+	startTask(setLiftPos); //lift up cone
 	setLiftPower(-15);
 	driveStraight(570,1,0); //drive to mobile goal
 	wait10Msec(70);
@@ -71,7 +93,8 @@ void runBasicCompAuton(int zone)
 
 	//Score cone and goal
 	setClawPower(127);
-	setLiftPos(3700,10); //lift up cone
+	desired = 3700;
+	startTask(setLiftPos);//lift up cone
 	setLiftPower(-15);
 	setClawPower(0);
 	setForkliftPower(1); //put down goal
@@ -91,26 +114,35 @@ task autonomous()
 
 task usercontrol()
 {
-
-	enum PotenValues {BACK = 350,MATCHLOAD = 0, SCORE = 4095};
+	enum PotenValues {BACK = 350, MATCHLOAD = 650, SCORE = 4095};
 	enum kpValues {BackFromScore = 0, ScoreFromBack = 0, MatchloadFromScore = 0, ScoreFromMatchload = 0};
 	SensorValue[rightQuad] = 0;
 	SensorValue[leftQuad] = 0;
-	//char direction = 1; //controls direction
-	//bool btnEightRightPressed = false; //tracks if button was pressed
+	char direction = 1; //controls direction
+	bool btnEightRightPressed = false; //tracks if button was pressed
 
-
-	int driveRight;
-	int driveLeft;
-	int liftPower;
-	int clawPower;
-	int forkliftPower;
-	int liftDesired;
-	int liftErr;
 
 	while(true)
 	{
-
+		//testing led
+	if(SensorValue[liftPoten]<1000)
+	{
+		sensorValue[redLED] = true;
+		sensorValue[yellowLED] = false;
+		sensorValue[greenLED] = false;
+	}
+	else if(SensorValue[liftPoten]<2500)
+	{
+		sensorValue[redLED] = false;
+		sensorValue[yellowLED] = true;
+		sensorValue[greenLED] = false;
+	}
+	else
+	{
+		sensorValue[redLED] = false;
+		sensorValue[yellowLED] = false;
+		sensorValue[greenLED] = true;
+	}
 		//Buttons and Joysticks
 		int  rightJoy = vexRT[Ch2];
 		int  leftJoy = vexRT[Ch3];
@@ -122,68 +154,51 @@ task usercontrol()
 		word btnEightDown = vexRT[Btn8D]; //for lift to set point
 		word btnSevenD = vexRT[Btn7D]; //for lift to stationary goal
 		word btnSevenUp = vexRT[Btn7U]; //for lift to match loads
-		word liftPos = SensorValue[liftPoten];
+		word btnEightRight = vexRT[Btn8R]; //for toggling reverse direction
+
+		if(btnEightRight == 1 && !btnEightRightPressed){ //if button was pressed and was not already being pressed, change sign
+			direction = -direction;
+			btnEightRightPressed = true;
+		}
+		else if(btnEightRight == 0 && btnEightRightPressed) //if button is no longer being pressed, update bool
+			btnEightRightPressed = false;
 
 		//Drive Motors
 		if(fabs(rightJoy) >= 15)
+			if(direction==1)
 			setRightMotors(rightJoy);
 		else
+			setLeftMotors(rightJoy);
+		else
+			if(direction==1)
 			setRightMotors(0);
-
-		if(fabs(leftJoy) >= 15)
-			setLeftMotors(leftJoy);
 		else
 			setLeftMotors(0);
 
-		//Lift Motors
-		liftErr = liftDesired - liftPos;
-		if(fabs(liftErr)<50)
-		{
+		if(fabs(leftJoy) >= 15)
+			if(direction==1)
+			setLeftMotors(leftJoy);
+		else
+			setRightMotors(leftJoy);
+		else
+			if(direction==1)
+			setLeftMotors(0);
+		else
+			setRightMotors(0);
 
-		}
 
-		//word btnEightRight = vexRT[Btn8R]; //for toggling reverse direction
-
-		//if(btnEightRight == 1 && !btnEightRightPressed){ //if button was pressed and was not already being pressed, change sign
-
-		//	direction = -direction;
-		//	btnEightRightPressed = true;
-		//}
-		//else if(btnEightRight == 0 && btnEightRightPressed) //if button is no longer being pressed, update bool
-		//	btnEightRightPressed = false;
-
-		//Drive Motors
-		//if(fabs(rightJoy) >= 15)
-		//	if(direction==1)
-		//	driveRight = rightJoy;
-		//else
-		//	driveLeft = rightJoy;
-		//else
-		//	if(direction==1)
-		//	driveRight = 0;
-		//else
-		//	driveLeft = 0;
-
-		//if(fabs(leftJoy) >= 15)
-		//	if(direction==1)
-		//	setLeftMotors(leftJoy);
-		//else
-		//	setRightMotors(leftJoy);
-		//else
-		//	if(direction==1)
-		//	setLeftMotors(0);
-		//else
-		//	setRightMotors(0);
-
-		writeDebugStreamLine("RightQuad: %d, LeftQuad: %d", SensorValue[rightQuad], SensorValue[leftQuad]);
 		//Lift Motors
 		if(rightTriggerUp == 1)
 		{
-			setLiftPos(SCORE,0.9);
+			desired = SCORE;
+			kp = 0.9;
+			startTask(setLiftPos);
 		}
 		else if(rightTriggerDown == 1)
 		{
-			setLiftPos(BACK,0.88);
+			desired = BACK;
+			kp = 0.88;
+			startTask(setLiftPos);
 		}
 		//else if(btnSevenD==1)
 		//{
@@ -191,13 +206,11 @@ task usercontrol()
 		//}
 		else if(btnSevenUp == 1)
 		{
-			setLiftPos(MATCHLOAD,0.9);
+			desired = MATCHLOAD;
+			kp = 0.9;
+			startTask(setLiftPos);
 			setClawPower(-80);
 		}
-		//else
-		//{
-		//	setLiftPower(0);
-		//}
 
 		//Mobile Goal Base Lifters
 		if(btnEightUp == 1)
@@ -209,24 +222,14 @@ task usercontrol()
 		if(leftTriggerDown == 1)
 		{
 			setClawPower(80);
-			//if(SensorValue[liftPoten]<500 || SensorValue[liftPoten]>150)
-			//	setLiftPower(-30);
-			//else
-			//	setLiftPower(0);
 		}
 		else if(leftTriggerUp == 1)
 		{
 			setClawPower(-80);
-			//if(SensorValue[liftPoten]<500 || SensorValue[liftPoten]>150)
-			//	setLiftPower(-30);
-			//else
-			//	setLiftPower(0);
 		}
 		else
 		{
 			setClawPower(0);
-			//if(SensorValue[liftPoten]<500)
-			//	setLiftPower(0);
 		}
 	}
 }

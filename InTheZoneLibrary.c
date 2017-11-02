@@ -55,22 +55,22 @@ void setClawPower(int power)
     motor[claw2] = power;
 
 }
-void setLiftPos(int desired, float pAdjustment)
-{
-		clearTimer(T2);
-			int err = desired - SensorValue[liftPoten];
-			int power = 127;
+//task setLiftPos(int desired, float pAdjustment)
+//{
+//		clearTimer(T2);
+//			int err = desired - SensorValue[liftPoten];
+//			int power = 127;
 
-			while(abs(err)>200 && time100(T2)<40) //adjust power of motors while error is outide of certain range, then set power to 0
-			{
-				err = desired - SensorValue[liftPoten];
-				//power = (int) (((-1*(0.00152+2/3500)*(err) + (2+3))*127/5);
-				power = (int) (err*127/4095*pAdjustment);
-				setLiftPower(power);
-				writeDebugStreamLine("Poten: %d, Power: %d, Error: %d", SensorValue[liftPoten], power,err);
-			}
-			setLiftPower(0);
-}
+//			while(abs(err)>200 && time100(T2)<40) //adjust power of motors while error is outide of certain range, then set power to 0
+//			{
+//				err = desired - SensorValue[liftPoten];
+//				//power = (int) (((-1*(0.00152+2/3500)*(err) + (2+3))*127/5);
+//				power = (int) (err*127/4095*pAdjustment);
+//				setLiftPower(power);
+//				writeDebugStreamLine("Poten: %d, Power: %d, Error: %d", SensorValue[liftPoten], power,err);
+//			}
+//			setLiftPower(0);
+//}
 
 void turnDeg(int angle)
 {
