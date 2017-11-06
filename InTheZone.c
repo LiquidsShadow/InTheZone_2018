@@ -34,23 +34,43 @@
 //#include "\BCI-master\drivingFunctions.c"
 //#include "\BCI-master\turningFunctions.c"
 
+//for setLiftPos task
 int desired;
 float kp;
+float BACK_KP = 0.88;
+float MATCHLOAD_KP = 1.3;
+float SCORE_KP = 0.9;
+
+//for setClawUntilPos task
+int desiredClaw;
+int clawPower;
+bool userControlClaw = true;
+
+enum PotenValues {BACK = 350, MATCHLOAD = 2000, SCORE = 4095, BACK_CLAW = 3700, MATCHLOAD_CLAW = 800};
+
 task setLiftPos()
 {
-			clearTimer(T2);
-			int err = desired - SensorValue[liftPoten];
-			int power = 127;
+	clearTimer(T2);
+	int err = desired - SensorValue[liftPoten];
+	int power = 127;
 
-			while(abs(err)>200 && time100(T2)<40) //adjust power of motors while error is outide of certain range, then set power to 0
-			{
-				err = desired - SensorValue[liftPoten];
-				//power = (int) (((-1*(0.00152+2/3500)*(err) + (2+3))*127/5);
-				power = (int) (err*127/4095*kp);
-				setLiftPower(power);
-				writeDebugStreamLine("Poten: %d, Power: %d, Error: %d", SensorValue[liftPoten], power,err);
-			}
-			setLiftPower(0);
+	while(abs(err)>200 && time100(T2)<40) //adjust power of motors while error is outide of certain range, then set power to 0
+	{
+		err = desired - SensorValue[liftPoten];
+		power = (int) (err*127/4095*kp);
+		setLiftPower(power);
+		//writeDebugStreamLine("Poten: %d, Power: %d, Error: %d", SensorValue[liftPoten], power,err);
+	}
+	setLiftPower(0);
+}
+
+task setClawUntilPos()
+{
+	userControlClaw = false;
+	setClawPower(clawPower);
+	while(SensorValue[liftPoten]>desiredClaw){} //wait until lift goes past a certain point moving from score to back
+	setClawPower(0);
+	userControlClaw = true;
 }
 
 void pre_auton()
@@ -114,35 +134,32 @@ task autonomous()
 
 task usercontrol()
 {
-	enum PotenValues {BACK = 350, MATCHLOAD = 650, SCORE = 4095};
-	enum kpValues {BackFromScore = 0, ScoreFromBack = 0, MatchloadFromScore = 0, ScoreFromMatchload = 0};
 	SensorValue[rightQuad] = 0;
 	SensorValue[leftQuad] = 0;
 	char direction = 1; //controls direction
 	bool btnEightRightPressed = false; //tracks if button was pressed
 
-
 	while(true)
 	{
 		//testing led
-	if(SensorValue[liftPoten]<1000)
-	{
-		sensorValue[redLED] = true;
-		sensorValue[yellowLED] = false;
-		sensorValue[greenLED] = false;
-	}
-	else if(SensorValue[liftPoten]<2500)
-	{
-		sensorValue[redLED] = false;
-		sensorValue[yellowLED] = true;
-		sensorValue[greenLED] = false;
-	}
-	else
-	{
-		sensorValue[redLED] = false;
-		sensorValue[yellowLED] = false;
-		sensorValue[greenLED] = true;
-	}
+		if(SensorValue[liftPoten]<1000)
+		{
+			SensorValue[redLED] = true;
+			SensorValue[yellowLED] = false;
+			SensorValue[greenLED] = false;
+		}
+		else if(SensorValue[liftPoten]<2500)
+		{
+			SensorValue[redLED] = false;
+			SensorValue[yellowLED] = true;
+			SensorValue[greenLED] = false;
+		}
+		else
+		{
+			SensorValue[redLED] = false;
+			SensorValue[yellowLED] = false;
+			SensorValue[greenLED] = true;
+		}
 		//Buttons and Joysticks
 		int  rightJoy = vexRT[Ch2];
 		int  leftJoy = vexRT[Ch3];
@@ -152,7 +169,6 @@ task usercontrol()
 		word leftTriggerDown = vexRT[Btn5D]; //for pincer open
 		word btnEightUp = vexRT[Btn8U];
 		word btnEightDown = vexRT[Btn8D]; //for lift to set point
-		word btnSevenD = vexRT[Btn7D]; //for lift to stationary goal
 		word btnSevenUp = vexRT[Btn7U]; //for lift to match loads
 		word btnEightRight = vexRT[Btn8R]; //for toggling reverse direction
 
@@ -191,25 +207,28 @@ task usercontrol()
 		if(rightTriggerUp == 1)
 		{
 			desired = SCORE;
-			kp = 0.9;
+			kp = SCORE_KP;
 			startTask(setLiftPos);
 		}
 		else if(rightTriggerDown == 1)
 		{
+			desiredClaw = BACK_CLAW;
+			clawPower = 80;
+			startTask(setClawUntilPos);
+
 			desired = BACK;
-			kp = 0.88;
+			kp = BACK_KP;
 			startTask(setLiftPos);
 		}
-		//else if(btnSevenD==1)
-		//{
-		//	setLiftPos(2050,1.2);
-		//}
 		else if(btnSevenUp == 1)
 		{
+			desiredClaw = MATCHLOAD_CLAW;
+			clawPower = 80;
+			startTask(setClawUntilPos);
+
 			desired = MATCHLOAD;
-			kp = 0.9;
+			kp = MATCHLOAD_KP;
 			startTask(setLiftPos);
-			setClawPower(-80);
 		}
 
 		//Mobile Goal Base Lifters
@@ -219,17 +238,19 @@ task usercontrol()
 			setForkliftPower(1);
 
 		//pincer
-		if(leftTriggerDown == 1)
-		{
-			setClawPower(80);
-		}
-		else if(leftTriggerUp == 1)
-		{
-			setClawPower(-80);
-		}
-		else
-		{
-			setClawPower(0);
+		if(userControlClaw){
+			if(leftTriggerDown == 1)
+			{
+				setClawPower(80);
+			}
+			else if(leftTriggerUp == 1)
+			{
+				setClawPower(-80);
+			}
+			else
+			{
+				setClawPower(0);
+			}
 		}
 	}
 }
