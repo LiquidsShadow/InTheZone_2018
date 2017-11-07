@@ -3,6 +3,7 @@
 #pragma config(Sensor, in3,    rightClawPoten, sensorPotentiometer)
 #pragma config(Sensor, dgtl1,  leftQuad,       sensorQuadEncoder)
 #pragma config(Sensor, dgtl3,  rightQuad,      sensorQuadEncoder)
+#pragma config(Sensor, dgtl5,  distance,       sensorSONAR_mm)
 #pragma config(Sensor, dgtl8,  redLED,         sensorLEDtoVCC)
 #pragma config(Sensor, dgtl9,  yellowLED,      sensorLEDtoVCC)
 #pragma config(Sensor, dgtl10, greenLED,       sensorLEDtoVCC)
@@ -117,10 +118,6 @@ void runBasicCompAuton(int zone)
 	startTask(setLiftPos);//lift up cone
 	setLiftPower(-15);
 	setClawPower(0);
-	setForkliftPower(1); //put down goal
-	wait10Msec(40);
-
-	driveStraight(-100,1,0); //back away to score
 	setLiftPower(0); //stop killing motors
 	writeDebugStreamLine("Time: %d", time100(T1));
 }
@@ -134,8 +131,8 @@ task autonomous()
 
 task usercontrol()
 {
-	SensorValue[rightQuad] = 0;
-	SensorValue[leftQuad] = 0;
+	//SensorValue[rightQuad] = 0;
+	//SensorValue[leftQuad] = 0;
 	char direction = 1; //controls direction
 	bool btnEightRightPressed = false; //tracks if button was pressed
 
