@@ -38,7 +38,7 @@
 //for setLiftPos task
 int desired;
 float kp;
-float BACK_KP = 0.88;
+float BACK_KP = 0.8;
 float MATCHLOAD_KP = 1.3;
 float SCORE_KP = 0.9;
 
@@ -48,6 +48,8 @@ int clawPower;
 bool userControlClaw = true;
 
 enum PotenValues {BACK = 350, MATCHLOAD = 2000, SCORE = 4095, BACK_CLAW = 3700, MATCHLOAD_CLAW = 800};
+
+bool reachedMobileGoal = false;
 
 task setLiftPos()
 {
@@ -63,6 +65,24 @@ task setLiftPos()
 		//writeDebugStreamLine("Poten: %d, Power: %d, Error: %d", SensorValue[liftPoten], power,err);
 	}
 	setLiftPower(0);
+}
+
+task setLiftPosAuton()
+{
+	clearTimer(T2);
+	int err = desired - SensorValue[liftPoten];
+	int power = 127;
+
+	while(abs(err)>200 && !reachedMobileGoal) //adjust power of motors while error is outide of certain range, then set power to 0
+	{
+		err = desired - SensorValue[liftPoten];
+		power = (int) (err*127/4095*kp);
+		setLiftPower(power);
+		//writeDebugStreamLine("Poten: %d, Power: %d, Error: %d", SensorValue[liftPoten], power,err);
+	}
+	setLiftPower(-15);
+	if(reachedMobileGoal)
+		setLiftPower(0);
 }
 
 task setClawUntilPos()
@@ -86,38 +106,41 @@ void runBasicCompAuton(int zone)
 	//Drop mobile base lift, lift cone, and drive straight
 	setForkliftPower(1);
 	desired = 3700;
-	startTask(setLiftPos); //lift up cone
-	setLiftPower(-15);
-	driveStraight(570,1,0); //drive to mobile goal
+	kp = 5.5;
+	startTask(setLiftPosAuton); //lift up cone
+	driveStraightAuton(1600,1,0); //drive to mobile goal
 	wait10Msec(70);
 
 	//pick up goal
+	reachedMobileGoal = true;
 	setForkliftPower(0); //pick up goal
 	setLiftPower(0);
 	wait10Msec(70);
 
 	//drive back
-	driveStraight(-400,1,0); //drive back
+	driveStraight(-1000,1,0); //drive back
 	wait10Msec(80);
 
 	//turn around and drive straight
-	turnDeg(200); //turn around
+	turnDeg(750); //turn around
 	if(zone == 5)
 	{
-		driveStraight(100,1,0);
+		driveStraight(400,1,0);
 	}
 	else if(zone == 10)
 	{
-		driveStraight(150,1,0);
+		driveStraight(350,1,0);
 	}
 	wait10Msec(1);
 
 	//Score cone and goal
 	setClawPower(127);
-	desired = 3700;
+	desired = BACK;
 	startTask(setLiftPos);//lift up cone
-	setLiftPower(-15);
+	setForkliftPower(1);
+	wait1Msec(1000);
 	setClawPower(0);
+	driveStraight(-400,1,0);
 	setLiftPower(0); //stop killing motors
 	writeDebugStreamLine("Time: %d", time100(T1));
 }
@@ -138,6 +161,8 @@ task usercontrol()
 
 	while(true)
 	{
+		if(vexRT[btn7L]==1)
+			runBasicCompAuton(5);
 		//testing led
 		if(SensorValue[liftPoten]<1000)
 		{
@@ -167,6 +192,7 @@ task usercontrol()
 		word btnEightUp = vexRT[Btn8U];
 		word btnEightDown = vexRT[Btn8D]; //for lift to set point
 		word btnSevenUp = vexRT[Btn7U]; //for lift to match loads
+		word btnSevenDown = vexRT[Btn7D]; //for lift to match loads
 		word btnEightRight = vexRT[Btn8R]; //for toggling reverse direction
 
 		if(btnEightRight == 1 && !btnEightRightPressed){ //if button was pressed and was not already being pressed, change sign
@@ -209,11 +235,7 @@ task usercontrol()
 		}
 		else if(rightTriggerDown == 1)
 		{
-			desiredClaw = BACK_CLAW;
-			clawPower = 80;
-			startTask(setClawUntilPos);
-
-			desired = BACK;
+desired = BACK;
 			kp = BACK_KP;
 			startTask(setLiftPos);
 		}
@@ -225,6 +247,16 @@ task usercontrol()
 
 			desired = MATCHLOAD;
 			kp = MATCHLOAD_KP;
+			startTask(setLiftPos);
+		}
+		else if(btnSevenDown == 1)
+		{
+			desiredClaw = BACK_CLAW;
+			clawPower = 80;
+			startTask(setClawUntilPos);
+
+			desired = BACK;
+			kp = BACK_KP;
 			startTask(setLiftPos);
 		}
 

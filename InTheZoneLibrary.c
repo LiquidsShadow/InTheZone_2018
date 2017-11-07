@@ -27,8 +27,8 @@ void setLeftMotors(int power)
 
 void setRightMotors(int power)
 {
-    motor[driveRightFront] = power;//(int) (power*0.55);
-    motor[driveRightBack] = power;//(int) (power*0.55);
+    motor[driveRightFront] = (int) (power*0.58);
+    motor[driveRightBack] = (int) (power*0.58);
   }
 void setAllDriveMotors(int power)
 {
@@ -81,7 +81,7 @@ void turnDeg(int angle)
 	int power;
 	while(abs(err)>20)
 	{
-		err = adjustedAngle - SensorValue[rightQuad];
+		err = adjustedAngle - SensorValue[leftQuad];
 		power=-127;
 		writeDebugStreamLine("err: %d",err);
 		//power = err*127/ajustedAngle + 10;
@@ -96,12 +96,12 @@ void turnDeg(int angle)
 
 void driveStraight(int dest,float kp, float kbias)
 {
-	SensorValue[rightQuad] = 0;
+	SensorValue[leftQuad] = 0;
 	int err = dest;
 	int power = 127;
 	while(abs(err)>20)
 	{
-		err = dest + SensorValue[rightQuad];
+		err = dest - SensorValue[leftQuad];
 		//power = (int) (err*127.0/dest*kp + kbias);
 		power = 127*kp*sgn(err);
 		setAllDriveMotors(power);
@@ -112,16 +112,16 @@ void driveStraight(int dest,float kp, float kbias)
 
 void driveStraightAuton(int dest,float kp, float kbias)
 {
-	SensorValue[rightQuad] = 0;
+		SensorValue[leftQuad] = 0;
 	int err = dest;
-	float power = 127;
+	int power = 127;
 	while(abs(err)>20)
 	{
-		err = dest + SensorValue[rightQuad];
+		err = dest - SensorValue[leftQuad];
 		//power = (int) (err*127.0/dest*kp + kbias);
 		power = 127*kp*sgn(err);
-		setRightMotors((int) (power*0.65/0.55));
-		setLeftMotors((int) (power));
+		setRightMotors((int)(power*1.1));
+		setLeftMotors(power);
 		//writeDebugStreamLine("err: %d, power: %d, kp: %d, kbias: %d, power?:", err, power, kp, kbias, err*127/dest*kp);
 	}
 	setAllDriveMotors(0);
