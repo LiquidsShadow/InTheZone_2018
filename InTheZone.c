@@ -31,7 +31,7 @@
 
 #include "Vex_Competition_Includes.c"
 #include "\InTheZoneLibrary.c"
-#include "\BCI-master\BCI.h"
+//#include "\BCI-master\BCI.h"
 //#include "\BCI-master\drivingFunctions.c"
 //#include "\BCI-master\turningFunctions.c"
 
@@ -47,17 +47,18 @@ int desiredClaw;
 int clawPower;
 bool userControlClaw = true;
 
-enum PotenValues {BACK = 350, MATCHLOAD = 2000, SCORE = 4095, BACK_CLAW = 3700, MATCHLOAD_CLAW = 850};
+//Values increase as arm goes back
+enum PotenValues {BACK = 350, MATCHLOAD = 2000, SCORE = 4095, BACK_CLAW = 3700, MATCHLOAD_CLAW = 950};
 
 bool reachedMobileGoal = false;
 
 task setLiftPos()
 {
-	clearTimer(T2);
+	clearTimer(T1);
 	int err = desired - SensorValue[liftPoten];
 	int power = 127;
 
-	while(abs(err)>200 && time100(T2)<40) //adjust power of motors while error is outide of certain range, then set power to 0
+	while(abs(err)>200 && time100(T1)<40) //adjust power of motors while error is outide of certain range, then set power to 0
 	{
 		err = desired - SensorValue[liftPoten];
 		power = (int) (err*127/4095*kp);
@@ -103,7 +104,7 @@ void pre_auton()
 
 void runBasicCompAuton(int zone)
 {
-	clearTimer(T1);
+	clearTimer(T3);
 	reachedMobileGoal = false;
 	//Drop mobile base lift, lift cone, and drive straight
 	setForkliftPower(1);
@@ -111,17 +112,17 @@ void runBasicCompAuton(int zone)
 	kp = 5.5;
 	startTask(setLiftPosAuton); //lift up cone
 	driveStraightAuton(1600,1,0); //drive to mobile goal
-	wait10Msec(70);
+	wait1Msec(700);
 
 	//pick up goal
 	reachedMobileGoal = true;
 	setForkliftPower(0); //pick up goal
 	setLiftPower(0);
-	wait10Msec(70);
+	wait1Msec(700);
 
 	//drive back
 	driveStraight(-1000,1,0); //drive back
-	wait10Msec(80);
+	wait1Msec(800);
 
 	//turn around and drive straight
 	turnDeg(750); //turn around
@@ -133,7 +134,7 @@ void runBasicCompAuton(int zone)
 	{
 		driveStraight(350,1,0);
 	}
-	wait10Msec(1);
+	wait1Msec(10);
 
 	//Score cone and goal
 	setClawPower(127);
@@ -145,7 +146,7 @@ void runBasicCompAuton(int zone)
 	setClawPower(0);
 	driveStraight(-400,1,0);
 	setLiftPower(0); //stop killing motors
-	writeDebugStreamLine("Time: %d", time100(T1));
+	writeDebugStreamLine("Time: %d", time100(T3));
 }
 
 task autonomous()
@@ -238,7 +239,7 @@ task usercontrol()
 		}
 		else if(rightTriggerDown == 1)
 		{
-desired = BACK;
+			desired = BACK;
 			kp = BACK_KP;
 			startTask(setLiftPos);
 		}
